@@ -2,86 +2,131 @@
 .bg
   h1 Sentiment Analysis
   v-row
-    v-card.space-all(:height="220", :width="300")
-      face-chart(
-        :chartdata="chartdataHappy",
-        :options="options",
-        :height="220",
-        :width="300"
-      )
-    v-card.space-all(:height="220", :width="300")
-      face-chart(
-        :chartdata="chartdataSad",
-        :options="options",
-        :height="220",
-        :width="300"
-      )
-    v-card.space-all(:height="220", :width="300")
-      face-chart(
-        :chartdata="chartdataAngry",
-        :options="options",
-        :height="220",
-        :width="300"
-      )
-    v-img(:height="250", :width="400", :src="image", contain)
-    v-card.space-rigth.space-bottom.space-left(:height="400", :width="240")
-      test(
-        :chartdata="chartdataConfused",
-        :options="options",
-        :height="400",
-        :width="240"
-      )
-    v-card.space-rigth.space-bottom.space-left(:height="400", :width="240")
-      test(
-        :chartdata="chartdataCalm",
-        :options="options",
-        :height="400",
-        :width="240"
-      )
-    v-card.space-rigth.space-bottom.space-left(:height="400", :width="240")
-      test(
-        :chartdata="chartdataFear",
-        :options="options",
-        :height="400",
-        :width="240"
-      )
-    v-card.space-rigth.space-bottom.space-left(:height="400", :width="200")
-      graph-doughnut(
-        :chartdata="chartdatafirst",
-        :options="options",
-        :height="200",
-        :width="200"
-      )
-      graph-doughnut(
-        :chartdata="chartdatasecond",
-        :options="options",
-        :height="200",
-        :width="200"
-      )
-    v-img.space-left.space-top(
-      :height="250",
-      :width="400",
-      :src="linedimage",
-      contain
-    )
-  h2.floot-rigth(margin="200") あなたの時給は{{ money }}円です
-  h3 {{ gendervalue }} : {{ gender }} Time:{{ time }} Smile:{{ smile }}
+    v-col(cols="4")
+      v-row(style="padding:10px; background-color:#222222;")
+        v-col(cols="6")
+          v-img(:src="thumbnail" contain height="300")
+        v-col(cols="6")
+          v-img(:src="linedimage" contain height="300")
+      v-row(style="padding:10px; background-color:#D81B60;")
+        v-col(cols="12")
+          span.font-weight-bold.text-h2 {{`時給`}}
+        v-col(cols="12")
+          span.font-weight-bold.white.black--text.text-h1 {{money}}
+          span.font-weight-bold.text-h1 {{`円`}}
+
+
+    v-col(cols="8")
+      v-row
+        v-card.space-all(
+          v-for="(chartdata, i) in emotionChartData" :key="i"
+          :height="chartHeight", :width="chartWidth"
+        )
+          template(v-if="chartdata.component==='face-chart'")
+            h4 {{chartdata.key}}
+            face-chart(
+              :chartdata="makeEmotionChartData(chartdata.key, chartdata.options)"
+              :options="options",
+              :height="chartHeight",
+              :width="chartWidth"
+            )
+          template(v-else-if="chartdata.component==='bar-chart'")
+            h4 {{chartdata.key}}
+            bar-chart(
+              :chartdata="makeEmotionChartData(chartdata.key, chartdata.options)"
+              :options="options",
+              :height="chartHeight",
+              :width="chartWidth"
+            )
+        v-card.space-all()
+          doughnut-chart(
+            :chartdata="emotionsDoughnutChart1"
+            :options="options",
+            :height="chartHeight",
+            :width="chartWidth"
+          )
+        v-card.space-all()
+          doughnut-chart(
+            :chartdata="emotionsDoughnutChart2"
+            :options="options",
+            :height="chartHeight",
+            :width="chartWidth"
+          )
+        v-col
+          v-simple-table(height="180px" fixed-header)
+            template(v-slot:default)
+              thead
+                tr
+                  th(v-for="key in Object.keys(tableData[0])" :key="key") {{key}}
+              tbody
+                tr(v-for="(item, i) in tableData" :key="i")
+                  td(v-for="(key) in Object.keys(tableData[0])" :key="key") {{ item[key] }}
+
 </template>
 <script>
 import FaceChart from "~/components/FaceChart";
-import Test from "~/components/Test";
+import BarChart from "~/components/BarChart";
+import DoughnutChart from "~/components/DoughnutChart";
 import firebase from "~/plugins/firebase.js";
 export default {
   data: function() {
     return {
       data: [],
+      chartWidth: 180,
+      chartHeight: 180,
+      emotionChartData: [
+        {
+          component: "face-chart",
+          key: "HAPPY",
+          options: { borderColor: "#79f879" },
+        },
+        {
+          component: "face-chart",
+          key: "SAD",
+          options: { borderColor: "#79f879" },
+        },
+        {
+          component: "face-chart",
+          key: "ANGRY",
+          options: { borderColor: "#79f879" },
+        },
+        {
+          component: "face-chart",
+          key: "SURPRISED",
+          options: { borderColor: "#79f879" },
+        },
+        {
+          component: "bar-chart",
+          key: "CONFUSED",
+          options: {
+            backgroundColor: "#FF0000",
+          },
+        },
+        {
+          component: "bar-chart",
+          key: "CALM",
+          options: {
+            backgroundColor: "#FF0000",
+          },
+        },
+        {
+          component: "bar-chart",
+          key: "DISGUSTED",
+          options: {
+            backgroundColor: "#FF0000",
+          },
+        },
+        {
+          component: "bar-chart",
+          key: "FEAR",
+          options: {
+            backgroundColor: "#FF0000",
+          },
+        },
+      ],
       wage: 0,
-      gender: 0,
-      time: 0,
-      gendervalue: 0,
-      smile: 0,
-      image: 0,
-      linedimage: 0,
+      thumbnail: "",
+      linedimage: "",
       options: {
         animation: false,
         legend: {
@@ -90,13 +135,13 @@ export default {
       },
     };
   },
-  componets: { FaceChart, Test },
+  componets: { FaceChart, BarChart, DoughnutChart },
   async mounted() {
     await firebase
       .firestore()
       .collection("faces")
       .orderBy("timestamp", "desc")
-      .limit(10)
+      .limit(20)
       .onSnapshot((doc) => {
         const chartdata = {
           labels: [],
@@ -107,28 +152,67 @@ export default {
             },
           ],
         };
-        let labels = [];
+        this.data = [];
         doc.forEach((item) => {
           const d = item.data();
           this.data.push(d);
         });
+        const lastData = this.data[0];
+        this.thumbnail =
+          "https://hacku2020.s3-ap-northeast-1.amazonaws.com/" +
+          lastData.thumbnailImage;
+        this.linedimage =
+          "https://hacku2020.s3-ap-northeast-1.amazonaws.com/" +
+          lastData.linedImage;
       });
   },
   methods: {
-    async addTestData() {
-      const now = new Date();
-      await firebase
-        .firestore()
-        .collection("person")
-        .add({
-          DateTime: now.getTime(),
-          Temp: Math.floor(Math.random() * 100),
-        });
+    makeEmotionChartData(key, options) {
+      const chartdata = {};
+      chartdata.datasets = [];
+      chartdata.datasets[0] = {};
+      chartdata.datasets[0].data = [];
+      chartdata.labels = [];
+      this.data.forEach((d) => {
+        const happy = d.FaceDetails[0].Emotions.find((e) => e.Type === key);
+        chartdata.datasets[0].data.push(happy.Confidence);
+        chartdata.labels.push("");
+      });
+      chartdata.datasets[0] = Object.assign(chartdata.datasets[0], options);
+      return chartdata;
+    },
+    makeEmotionsDoughnutData(keys, backgroundColors) {
+      const chartdata = {};
+      chartdata.datasets = [];
+      chartdata.datasets[0] = {};
+      chartdata.datasets[0].data = [];
+      chartdata.labels = [];
+      chartdata.datasets[0].backgroundColor = [];
+      if (this.data.length <= 0) {
+        return chartdata;
+      }
+      for (let i = 0; i < keys.length; i++) {
+        const d = this.data[0].FaceDetails[0].Emotions.find(
+          (e) => e.Type === keys[i]
+        );
+        if (d) {
+          chartdata.datasets[0].data.push(d.Confidence);
+          chartdata.labels.push("");
+          chartdata.datasets[0].backgroundColor.push(backgroundColors[i]);
+        }
+      }
+      return chartdata;
     },
   },
   computed: {
     money() {
-      return Math.floor(this.wage * 20);
+      let sum = 0;
+      this.data.forEach((d) => {
+        console.log(d);
+        const emo = d.FaceDetails[0].Emotions.find((e) => e.Type === "HAPPY");
+        sum += Number(emo.Confidence);
+      });
+      return Math.floor((sum / this.data.length) * 20);
     },
     myStyles() {
       return {
@@ -136,144 +220,35 @@ export default {
         position: "relative",
       };
     },
-    chartdataHappy() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
+    emotionsDoughnutChart1() {
+      return this.makeEmotionsDoughnutData(
+        ["HAPPY", "SAD", "ANGRY", "SURPRISED"],
+        ["#800000", "#800080", "#ff9e3d", "#FFFF00"]
+      );
+    },
+    emotionsDoughnutChart2() {
+      return this.makeEmotionsDoughnutData(
+        ["CONFUSED", "CALM", "DISGUSTED", "FEAR"],
+        ["#0000cd", "#ff00ff", "#800080", "#ff9e3d"]
+      );
+    },
+    tableData() {
+      const ret = [];
       this.data.forEach((d) => {
-        const happy = d.FaceDetails[0].Emotions.find((e) => e.Type === "HAPPY");
-        chartdata.datasets[0].data.push(happy.Confidence);
-        this.wage = happy.Confidence; //時給計算
-        chartdata.labels.push("");
+        const faceDetails = d.FaceDetails[0];
+        ret.push({
+          timestamp: `${d.timestamp}`,
+          AgeRange: `${faceDetails.AgeRange.Low}-${faceDetails.AgeRange.High}`,
+          Eyeglasses: `${faceDetails.Eyeglasses.Value}`,
+          EyesOpen: `${faceDetails.EyesOpen.Value}`,
+          MouthOpen: `${faceDetails.MouthOpen.Value}`,
+          Gender: `${faceDetails.Gender.Value}`,
+        });
       });
-      chartdata.datasets[0].borderColor = "#79f879";
-      return chartdata;
-    },
-    chartdataSad() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
-      this.data.forEach((d) => {
-        const sad = d.FaceDetails[0].Emotions.find((e) => e.Type === "SAD");
-        chartdata.datasets[0].data.push(sad.Confidence);
-        chartdata.labels.push("");
-      });
-      chartdata.datasets[0].borderColor = "#79f879";
-      return chartdata;
-    },
-    chartdataAngry() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
-      this.data.forEach((d) => {
-        const angry = d.FaceDetails[0].Emotions.find((e) => e.Type === "ANGRY");
-        chartdata.datasets[0].data.push(angry.Confidence);
-        chartdata.labels.push("");
-      });
-      chartdata.datasets[0].borderColor = "#79f879";
-      return chartdata;
-    },
-    chartdataConfused() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
-      this.data.forEach((d) => {
-        const confused = d.FaceDetails[0].Emotions.find(
-          (e) => e.Type === "CONFUSED"
-        );
-        chartdata.datasets[0].data.push(confused.Confidence);
-        chartdata.labels.push("");
-      });
-      chartdata.datasets[0].backgroundColor = "#FF0000";
-      return chartdata;
-    },
-    chartdataCalm() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
-      this.data.forEach((d) => {
-        const calm = d.FaceDetails[0].Emotions.find((e) => e.Type === "CALM");
-        chartdata.datasets[0].data.push(calm.Confidence);
-        chartdata.labels.push("");
-      });
-      chartdata.datasets[0].backgroundColor = "#FF0000";
-      return chartdata;
-    },
-    chartdataFear() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
-      this.data.forEach((d) => {
-        const fear = d.FaceDetails[0].Emotions.find((e) => e.Type === "FEAR");
-        chartdata.datasets[0].data.push(fear.Confidence);
-        chartdata.labels.push("");
-      });
-      chartdata.datasets[0].backgroundColor = "#FF0000";
-      return chartdata;
-    },
-    chartdatafirst() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
-      this.data.some((d) => {
-        //先頭だけ欲しいのでsome関数をつかった。ただ少し調整が必要かも
-        const happy = d.FaceDetails[0].Emotions.find((e) => e.Type === "HAPPY");
-        const sad = d.FaceDetails[0].Emotions.find((e) => e.Type === "SAD");
-        const angry = d.FaceDetails[0].Emotions.find((e) => e.Type === "ANGRY");
-        chartdata.datasets[0].data[0] = happy.Confidence;
-        chartdata.datasets[0].data[1] = sad.Confidence;
-        chartdata.datasets[0].data[2] = angry.Confidence;
-        chartdata.labels.push("");
-        return true;
-      });
-      chartdata.datasets[0].backgroundColor = ["#800000", "#800080", "#ff9e3d"];
-      return chartdata;
-    },
-    chartdatasecond() {
-      const chartdata = {};
-      chartdata.datasets = [];
-      chartdata.datasets[0] = {};
-      chartdata.datasets[0].data = [];
-      chartdata.labels = [];
-      console.log(this.data);
-      this.data.some((d) => {
-        //先頭だけ欲しいのでsome関数をつかった。ただ少し調整が必要かも
-        const confused = d.FaceDetails[0].Emotions.find(
-          (e) => e.Type === "CONFUSED"
-        );
-        const calm = d.FaceDetails[0].Emotions.find((e) => e.Type === "CALM");
-        const fear = d.FaceDetails[0].Emotions.find((e) => e.Type === "FEAR");
-        this.gender = d.FaceDetails[0].Gender.Confidence;
-        this.gendervalue = d.FaceDetails[0].Gender.Value;
-        this.time = d.ResponseMetadata.HTTPHeaders.date;
-        this.smile = d.FaceDetails[0].Smile.Confidence;
-        this.image =
-          "https://hacku2020.s3-ap-northeast-1.amazonaws.com/" +
-          d.thumbnailImage;
-        this.linedimage =
-          "https://hacku2020.s3-ap-northeast-1.amazonaws.com/" + d.linedImage;
-        chartdata.datasets[0].data[0] = confused.Confidence;
-        chartdata.datasets[0].data[1] = calm.Confidence;
-        chartdata.datasets[0].data[2] = fear.Confidence;
-        chartdata.labels.push("");
-        return true;
-      });
-      chartdata.datasets[0].backgroundColor = ["#FFFF00	", "#0000cd", "#ff00ff"];
-      return chartdata;
+      if (ret.length === 0) {
+        return [{}];
+      }
+      return ret;
     },
   },
 };
@@ -283,7 +258,7 @@ export default {
   background-image: url("AuroraDark.png");
 }
 .space-all {
-  margin: 20px;
+  margin: 4px;
 }
 .space-top {
   margin-top: 20px;
