@@ -5,63 +5,63 @@
     v-col(cols="4")
       v-row(style="padding:10px; background-color:#222222;")
         v-col(cols="6")
-          v-img(:src="thumbnail" contain height="300")
+          v-img(:src="thumbnail", contain, height="300")
         v-col(cols="6")
-          v-img(:src="linedimage" contain height="300")
+          v-img(:src="linedimage", contain, height="300")
       v-row(style="padding:10px; background-color:#D81B60;")
         v-col(cols="12")
-          span.font-weight-bold.text-h2 {{`時給`}}
+          span.font-weight-bold.text-h2 {{ `時給` }}
         v-col(cols="12")
-          span.font-weight-bold.white.black--text.text-h1 {{money}}
-          span.font-weight-bold.text-h1 {{`円`}}
-
+          span.font-weight-bold.white.black--text.text-h1 {{ money }}
+          span.font-weight-bold.text-h1 {{ `円` }}
 
     v-col(cols="8")
       v-row
         v-card.space-all(
-          v-for="(chartdata, i) in emotionChartData" :key="i"
-          :height="chartHeight", :width="chartWidth"
+          v-for="(chartdata, i) in emotionChartData",
+          :key="i",
+          :height="chartHeight",
+          :width="chartWidth"
         )
-          template(v-if="chartdata.component==='face-chart'")
-            h4 {{chartdata.key}}
+          template(v-if="chartdata.component === 'face-chart'")
+            h4 {{ chartdata.key }}
             face-chart(
-              :chartdata="makeEmotionChartData(chartdata.key, chartdata.options)"
+              :chartdata="makeEmotionChartData(chartdata.key, chartdata.options)",
               :options="options",
               :height="chartHeight",
               :width="chartWidth"
             )
-          template(v-else-if="chartdata.component==='bar-chart'")
-            h4 {{chartdata.key}}
+          template(v-else-if="chartdata.component === 'bar-chart'")
+            h4 {{ chartdata.key }}
             bar-chart(
-              :chartdata="makeEmotionChartData(chartdata.key, chartdata.options)"
+              :chartdata="makeEmotionChartData(chartdata.key, chartdata.options)",
               :options="options",
               :height="chartHeight",
               :width="chartWidth"
             )
-        v-card.space-all()
+        v-card.space-all
           doughnut-chart(
-            :chartdata="emotionsDoughnutChart1"
+            :chartdata="emotionsDoughnutChart1",
             :options="options",
             :height="chartHeight",
             :width="chartWidth"
           )
-        v-card.space-all()
+        v-card.space-all
           doughnut-chart(
-            :chartdata="emotionsDoughnutChart2"
+            :chartdata="emotionsDoughnutChart2",
             :options="options",
             :height="chartHeight",
             :width="chartWidth"
           )
         v-col
-          v-simple-table(height="180px" fixed-header)
+          v-simple-table(height="180px", fixed-header)
             template(v-slot:default)
               thead
                 tr
-                  th(v-for="key in Object.keys(tableData[0])" :key="key") {{key}}
+                  th(v-for="key in Object.keys(tableData[0])", :key="key") {{ key }}
               tbody
-                tr(v-for="(item, i) in tableData" :key="i")
-                  td(v-for="(key) in Object.keys(tableData[0])" :key="key") {{ item[key] }}
-
+                tr(v-for="(item, i) in tableData", :key="i")
+                  td(v-for="key in Object.keys(tableData[0])", :key="key") {{ item[key] }}
 </template>
 <script>
 import FaceChart from "~/components/FaceChart";
@@ -69,7 +69,7 @@ import BarChart from "~/components/BarChart";
 import DoughnutChart from "~/components/DoughnutChart";
 import firebase from "~/plugins/firebase.js";
 export default {
-  data: function() {
+  data: function () {
     return {
       data: [],
       chartWidth: 180,
